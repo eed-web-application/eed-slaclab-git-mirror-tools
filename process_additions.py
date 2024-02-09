@@ -51,7 +51,7 @@ def append_to_global_config_and_record_success(project, global_config='repos_to_
 def process_project_additions(project_addition_dir='project_additions', global_config='repos_to_mirror.yml'):
     for file_name in os.listdir(project_addition_dir):
         file_path = os.path.join(project_addition_dir, file_name)
-        if file_name.endswith('.yml'):
+        if file_name.endswith('.yml') or file_name.endswith('.yaml'):
             project_config = load_projects(file_path)
             if project_config and 'projects' in project_config:
                 for project in project_config['projects']:
