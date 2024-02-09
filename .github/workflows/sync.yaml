@@ -54,17 +54,18 @@ jobs:
             COMMIT_MESSAGE="Update repos_to_mirror.yml with new project additions"
           fi
           git status
-          # Check if there are changes to commit
           if [ -n "$(git status --porcelain)" ]; then
-            # Checkout to a new branch or existing PR branch based on detached HEAD
-            git checkout -b temp-branch-for-changes
+            # Checkout to a new branch based on the latest state of the target branch
+            git fetch origin feature/first-impl
+            git checkout -b temp-branch-for-changes origin/feature/first-impl
             git commit -m "$COMMIT_MESSAGE"
-            # Push the changes back to the source branch of the PR
-            git push origin temp-branch-for-changes:${{ github.head_ref }}
+            # Optional: Handle potential merge conflicts here
+            git push origin temp-branch-for-changes:feature/first-impl
           else
             echo "No changes to commit"
           fi
           rm -f added_projects.txt  # Clean up the temporary file
+
 
 
   mirror_repositories:

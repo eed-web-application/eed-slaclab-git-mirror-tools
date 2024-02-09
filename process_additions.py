@@ -13,8 +13,10 @@ def load_projects(file_path):
 
 def save_projects(file_path, projects):
     try:
+        existing_projects = load_projects(file_path) or {'projects': []}
+        existing_projects['projects'].extend(projects['projects'])
         with open(file_path, 'w', encoding='utf-8') as file:
-            yaml.dump(projects, file, sort_keys=False, default_flow_style=False)
+            yaml.dump(existing_projects, file, sort_keys=False, default_flow_style=False)
     except Exception as e:
         print(f"Error saving projects to {file_path}: {e}")
 
