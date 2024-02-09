@@ -1,0 +1,4 @@
+projects:
+  - name: elog-plus-backend
+    source_url: git@github.com:eed-web-application/elog-plus.git
+    mirror_url: git@github.com:slaclab/elog-plus-backend.git
