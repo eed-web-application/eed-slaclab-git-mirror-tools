@@ -8,8 +8,9 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'repos_to_mirror.yml'
+  workflow_dispatch: # Add this line to enable manual triggering
+  schedule:
+    - cron: "0 */6 * * *"
 
 jobs:
   process_project_additions:
