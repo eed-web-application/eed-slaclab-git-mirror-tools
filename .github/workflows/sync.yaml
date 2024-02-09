@@ -3,7 +3,7 @@ name: Mirror Repositories Workflow
 on:
   pull_request:
     paths:
-      - 'project_additions/*.yml'
+      - 'project_additions/*.{yml,yaml}'
   push:
     branches:
       - main
