@@ -28,7 +28,7 @@ jobs:
           ssh-keyscan github.com >> ~/.ssh/known_hosts
           git config --global user.email "actions@github.com"
           git config --global user.name "GitHub Actions"
-          
+
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
@@ -53,9 +53,19 @@ jobs:
           else
             COMMIT_MESSAGE="Update repos_to_mirror.yml with new project additions"
           fi
-          git commit -m "$COMMIT_MESSAGE" || echo "No changes to commit"
-          git push
+          git status
+          # Check if there are changes to commit
+          if [ -n "$(git status --porcelain)" ]; then
+            # Checkout to a new branch or existing PR branch based on detached HEAD
+            git checkout -b temp-branch-for-changes
+            git commit -m "$COMMIT_MESSAGE"
+            # Push the changes back to the source branch of the PR
+            git push origin temp-branch-for-changes:${{ github.head_ref }}
+          else
+            echo "No changes to commit"
+          fi
           rm -f added_projects.txt  # Clean up the temporary file
+
 
   mirror_repositories:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
