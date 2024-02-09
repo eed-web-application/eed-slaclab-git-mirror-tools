@@ -18,7 +18,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      
+      - name: Setup SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_MIRROR_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+          
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
