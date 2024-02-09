@@ -1,0 +1,67 @@
+name: Mirror Repositories Workflow
+
+on:
+  pull_request:
+    paths:
+      - 'project_additions/*.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'repos_to_mirror.yml'
+
+jobs:
+  process_project_additions:
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+      
+      - name: Process Project Additions
+        run: python process_additions.py
+      
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          git add repos_to_mirror.yml
+          if [ -f added_projects.txt ]; then
+            PROJECT_NAMES=$(cat added_projects.txt | tr '\n' ' ' | sed 's/ $//')
+            COMMIT_MESSAGE="Update repos_to_mirror.yml with new project additions: $PROJECT_NAMES"
+          else
+            COMMIT_MESSAGE="Update repos_to_mirror.yml with new project additions"
+          fi
+          git commit -m "$COMMIT_MESSAGE" || echo "No changes to commit"
+          git push
+          rm -f added_projects.txt  # Clean up the temporary file
+
+  mirror_repositories:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+      
+      - name: Mirror Repositories
+        run: python mirror_repos_from_global.py
