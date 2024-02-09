@@ -2,8 +2,9 @@ name: Mirror Repositories Workflow
 
 on:
   pull_request:
-    paths:
-      - 'project_additions/*.yml'
+    types:
+      - opened
+      - synchronize
   push:
     branches:
       - main
@@ -17,7 +18,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      
+      - name: Setup SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_MIRROR_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
@@ -42,9 +53,20 @@ jobs:
           else
             COMMIT_MESSAGE="Update repos_to_mirror.yml with new project additions"
           fi
-          git commit -m "$COMMIT_MESSAGE" || echo "No changes to commit"
-          git push
+          git status
+          if [ -n "$(git status --porcelain)" ]; then
+            # Checkout to a new branch based on the latest state of the target branch
+            git fetch origin feature/first-impl
+            git checkout -b temp-branch-for-changes origin/feature/first-impl
+            git commit -m "$COMMIT_MESSAGE"
+            # Optional: Handle potential merge conflicts here
+            git push origin temp-branch-for-changes:feature/first-impl
+          else
+            echo "No changes to commit"
+          fi
           rm -f added_projects.txt  # Clean up the temporary file
+
+
 
   mirror_repositories:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
