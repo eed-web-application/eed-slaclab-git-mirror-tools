@@ -24,9 +24,6 @@ def mirror_repository(project):
     mirror_url = project['mirror_url']
     print(f"Starting mirroring for {name} from {source_url} to {mirror_url}")
     
-    # Ensure you have the necessary permissions for both source and mirror repositories.
-    # This might involve setting up SSH keys or tokens for authentication.
-    
     try:
         subprocess.run(["git", "clone", "--bare", source_url, name], check=True)
         subprocess.run(["git", "remote", "add", "mirror", mirror_url], cwd=name, check=True)
@@ -40,22 +37,28 @@ def mirror_repository(project):
         # Cleanup: remove the temporary clone
         subprocess.run(["rm", "-rf", name])
 
-def process_project_additions(project_addition_dir='project_additions', global_config='repos_to_mirror.yml'):
+def append_to_global_config_and_record_success(project, global_config='repos_to_mirror.yml'):
+    """Appends project to global config and records successful addition."""
+    # Load or initialize the global projects list
     global_projects = load_projects(global_config) or {'projects': []}
+    global_projects['projects'].append(project)
+    save_projects(global_config, global_projects)
+    
+    # Record the successfully mirrored project
+    with open('added_projects.txt', 'a') as added_projects_file:
+        added_projects_file.write(project['name'] + '\n')
 
+def process_project_additions(project_addition_dir='project_additions', global_config='repos_to_mirror.yml'):
     for file_name in os.listdir(project_addition_dir):
         file_path = os.path.join(project_addition_dir, file_name)
-        if file_name.endswith('.yml') or file_name.endswith('.yaml'):
+        if file_name.endswith('.yml'):
             project_config = load_projects(file_path)
             if project_config and 'projects' in project_config:
                 for project in project_config['projects']:
                     if mirror_repository(project):
-                        # Append to global config only if mirroring was successful
-                        global_projects['projects'].append(project)
-                        print(f"Appending {project['name']} to global configuration")
+                        # Append to global config and record success only if mirroring was successful
+                        append_to_global_config_and_record_success(project, global_config)
             os.remove(file_path)  # Remove processed file
-    
-    save_projects(global_config, global_projects)
 
 def main():
     process_project_additions()
