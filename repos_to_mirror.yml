@@ -2,3 +2,9 @@ projects:
 - name: elog-plus-backend
   source_url: git@github.com:eed-web-application/elog-plus.git
   mirror_url: git@github.com:slaclab/elog-plus-backend.git
+- name: core-work-management
+  source_url: git@github.com:eed-web-application/core-work-management.git
+  mirror_url: git@github.com:slaclab/core-work-management.git
+- name: core-inventory-system
+  source_url: git@github.com:eed-web-application/core-inventory-system.git
+  mirror_url: git@github.com:slaclab/core-inventory-system.git
